@@ -24,7 +24,6 @@ const commentSchema = new mongoose.Schema({
 
 commentSchema.index({ blogId: 1, userId: 1}, { unique: true });
 
-
 commentSchema.post('save', async function (doc) {
     const session = await Comment.startSession();
     session.startTransaction();
@@ -33,21 +32,27 @@ commentSchema.post('save', async function (doc) {
         if (user) {
             user.blog = doc._id;
             await user.save();
+            
+            const blog = await Blog.findById(doc.blogId);
+            if (blog) {
+                blog.comments.push(doc._id);
+                await blog.save();
+            }
+            
             await session.commitTransaction();
-        }else{
+        } else {
             const error = new Error(`Invalid User`);
             error.name = "ValidationError";
             next(error);
         }
-    }catch (err) {
+    } catch (err) {
         await session.abortTransaction();
-        console.log(err)
+        console.log(err);
         await doc.remove();
-    }finally {
+    } finally {
         await session.endSession();
     }
 });
-
 const Comment = mongoose.model("Comment", commentSchema);
 
 module.exports = Comment;
