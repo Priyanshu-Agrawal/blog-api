@@ -3,16 +3,10 @@ const User = require("../User");
 const Blog = require("../Blog");
 
 const commentSchema = new mongoose.Schema({
-    viewer: {
-        name: {
-            type: String,
-            required: true,
-        },
-        id: {
+    userId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
             required: true,
-        }
     },
     blogId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -28,32 +22,8 @@ const commentSchema = new mongoose.Schema({
 })
 
 
-commentSchema.index({ serviceProviderId: 1, userId: 1}, { unique: true });
+commentSchema.index({ blogId: 1, userId: 1}, { unique: true });
 
-commentSchema.pre('save', async function (next) {
-    try{
-        const review = this;
-        const serviceProvider = await Blog.findById(comment.blogId);
-        const user = await User.findById(comment.userId);
-        const existingReview = await Review.findOne({
-            userId: review.userId,
-            serviceProviderId: review.serviceProviderId,
-        });
-        if(serviceProvider && user && !existingReview) {
-            next();
-        } else{
-            const error = new Error(`Invalid ${!serviceProvider ? "Service Provider" : !user ? "User" : "Review"}`);
-            error.name = "ValidationError";
-            next(error);
-        }
-    }catch (err) {
-        console.log(err)
-        next(err)
-    }
-})
-
-
-commentSchema.index({ 'viewer.id': 1, blogId: 1 }, { unique: true });
 
 commentSchema.post('save', async function (doc) {
     const session = await Comment.startSession();

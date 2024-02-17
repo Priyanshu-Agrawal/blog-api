@@ -5,10 +5,7 @@ const router = express.Router();
 router.post('/comments', async (req, res) => {
 	try {
 		const comment = new Comment({
-			viewer: {
-				name: req.body.viewer.name,
-				id: req.body.viewer.id,
-			},
+			userId: req.body.userId,
 			blogId: req.body.blogId,
 			comment: req.body.comment,
 		});
